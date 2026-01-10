@@ -1,0 +1,1135 @@
+﻿<Window x:Class="DotNetWatcher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DotNetWatcher"
+        xmlns:converters="clr-namespace:DotNetWatcher.Converters"
+        mc:Ignorable="d"
+        Title=".NET Security Advisory Monitor" Height="800" Width="1200"
+        Icon="Assets/app.ico"
+        Background="{DynamicResource VsBackgroundBrush}" 
+        WindowStyle="SingleBorderWindow">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="32"
+                      ResizeBorderThickness="5"
+                      GlassFrameThickness="0"
+                      CornerRadius="0"
+                      UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <converters:PriorityToColorConverter x:Key="PriorityToColorConverter"/>
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+        <converters:BooleanToVisibilityConverter x:Key="InvertedBoolToVisibility" Invert="True"/>
+        <converters:ActionRecommendationToBrushConverter x:Key="ActionRecommendationToBrushConverter" />
+
+        <!-- Visual Studio Dark Theme Colors -->
+        <SolidColorBrush x:Key="VsBackgroundBrush" Color="#1E1E1E"/>
+        <SolidColorBrush x:Key="VsToolWindowBrush" Color="#252526"/>
+        <SolidColorBrush x:Key="VsToolWindowBorderBrush" Color="#3F3F46"/>
+        <SolidColorBrush x:Key="VsMenuBackgroundBrush" Color="#2D2D30"/>
+        <SolidColorBrush x:Key="VsMenuHoverBrush" Color="#3E3E40"/>
+        <SolidColorBrush x:Key="VsSelectedBrush" Color="#094771"/>
+        <SolidColorBrush x:Key="VsHighlightBrush" Color="#007ACC"/>
+        <SolidColorBrush x:Key="VsTextForegroundBrush" Color="#F1F1F1"/>
+        <SolidColorBrush x:Key="VsTextSecondaryBrush" Color="#9D9D9D"/>
+        <SolidColorBrush x:Key="VsTextDisabledBrush" Color="#656565"/>
+        <SolidColorBrush x:Key="VsInputBackgroundBrush" Color="#3C3C3C"/>
+        <SolidColorBrush x:Key="VsInputBorderBrush" Color="#555555"/>
+        <SolidColorBrush x:Key="VsFocusBorderBrush" Color="#007ACC"/>
+        <SolidColorBrush x:Key="VsButtonBrush" Color="#0E639C"/>
+        <SolidColorBrush x:Key="VsButtonHoverBrush" Color="#1177BB"/>
+        <SolidColorBrush x:Key="VsButtonPressedBrush" Color="#094771"/>
+        <SolidColorBrush x:Key="VsSuccessBrush" Color="#57A64A"/>
+        <SolidColorBrush x:Key="VsSuccessHoverBrush" Color="#6ABF5B"/>
+        <SolidColorBrush x:Key="VsWarningBrush" Color="#D69D00"/>
+        <SolidColorBrush x:Key="VsErrorBrush" Color="#F14C4C"/>
+        <SolidColorBrush x:Key="VsInfoBrush" Color="#3794FF"/>
+
+        <!-- ScrollBar Styles for Dark Theme -->
+        <Style x:Key="ScrollBarThumb" TargetType="Thumb">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border x:Name="thumbBorder"
+                                Background="{StaticResource VsInputBorderBrush}"
+                                CornerRadius="4"
+                                Margin="2"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="thumbBorder" Property="Background" Value="{StaticResource VsTextSecondaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="thumbBorder" Property="Background" Value="{StaticResource VsHighlightBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ScrollBarLineButton" TargetType="RepeatButton">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border Background="Transparent"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ScrollBarPageButton" TargetType="RepeatButton">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border Background="Transparent"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <ControlTemplate x:Key="VerticalScrollBar" TargetType="ScrollBar">
+            <Grid>
+                <Border Background="{StaticResource VsToolWindowBrush}" CornerRadius="4"/>
+                <Track x:Name="PART_Track" IsDirectionReversed="True">
+                    <Track.DecreaseRepeatButton>
+                        <RepeatButton Style="{StaticResource ScrollBarPageButton}" Command="ScrollBar.PageUpCommand"/>
+                    </Track.DecreaseRepeatButton>
+                    <Track.Thumb>
+                        <Thumb Style="{StaticResource ScrollBarThumb}"/>
+                    </Track.Thumb>
+                    <Track.IncreaseRepeatButton>
+                        <RepeatButton Style="{StaticResource ScrollBarPageButton}" Command="ScrollBar.PageDownCommand"/>
+                    </Track.IncreaseRepeatButton>
+                </Track>
+            </Grid>
+        </ControlTemplate>
+
+        <ControlTemplate x:Key="HorizontalScrollBar" TargetType="ScrollBar">
+            <Grid>
+                <Border Background="{StaticResource VsToolWindowBrush}" CornerRadius="4"/>
+                <Track x:Name="PART_Track" IsDirectionReversed="False">
+                    <Track.DecreaseRepeatButton>
+                        <RepeatButton Style="{StaticResource ScrollBarPageButton}" Command="ScrollBar.PageLeftCommand"/>
+                    </Track.DecreaseRepeatButton>
+                    <Track.Thumb>
+                        <Thumb Style="{StaticResource ScrollBarThumb}"/>
+                    </Track.Thumb>
+                    <Track.IncreaseRepeatButton>
+                        <RepeatButton Style="{StaticResource ScrollBarPageButton}" Command="ScrollBar.PageRightCommand"/>
+                    </Track.IncreaseRepeatButton>
+                </Track>
+            </Grid>
+        </ControlTemplate>
+
+        <Style TargetType="ScrollBar">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Width" Value="10"/>
+            <Setter Property="MinWidth" Value="10"/>
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Vertical">
+                    <Setter Property="Template" Value="{StaticResource VerticalScrollBar}"/>
+                    <Setter Property="Width" Value="10"/>
+                    <Setter Property="Height" Value="Auto"/>
+                </Trigger>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Template" Value="{StaticResource HorizontalScrollBar}"/>
+                    <Setter Property="Height" Value="10"/>
+                    <Setter Property="Width" Value="Auto"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Filter TextBox Style with Focus Indicator and Watermark -->
+        <Style x:Key="FilterTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Background" Value="{StaticResource VsInputBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource VsTextForegroundBrush}"/>
+            <Setter Property="CaretBrush" Value="{StaticResource VsTextForegroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource VsInputBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Tag" Value="Search by CVE, issue #, title, or version..."/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <Grid>
+                                <ScrollViewer x:Name="PART_ContentHost"
+                                              Focusable="False"
+                                              HorizontalScrollBarVisibility="Hidden"
+                                              VerticalScrollBarVisibility="Hidden"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"/>
+                                <TextBlock x:Name="watermark"
+                                           Text="{TemplateBinding Tag}"
+                                           Foreground="{StaticResource VsTextDisabledBrush}"
+                                           VerticalAlignment="Center"
+                                           Margin="12,0"
+                                           IsHitTestVisible="False"
+                                           Visibility="Collapsed"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource VsFocusBorderBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource VsHighlightBrush}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="Text" Value=""/>
+                                    <Condition Property="IsKeyboardFocused" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="watermark" Property="Visibility" Value="Visible"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ComboBox Toggle Button -->
+        <ControlTemplate x:Key="ComboBoxToggleButton" TargetType="ToggleButton">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="20"/>
+                </Grid.ColumnDefinitions>
+                <Border x:Name="Border"
+                        Grid.ColumnSpan="2"
+                        Background="{StaticResource VsInputBackgroundBrush}"
+                        BorderBrush="{StaticResource VsInputBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"/>
+                <Path x:Name="Arrow"
+                      Grid.Column="1"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      Data="M 0 0 L 4 4 L 8 0 Z"
+                      Fill="{StaticResource VsTextSecondaryBrush}"/>
+            </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource VsHighlightBrush}"/>
+                    <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource VsTextForegroundBrush}"/>
+                </Trigger>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource VsFocusBorderBrush}"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!-- Filter ComboBox Style - Dark Theme -->
+        <Style x:Key="FilterComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Foreground" Value="{StaticResource VsTextForegroundBrush}"/>
+            <Setter Property="Background" Value="{StaticResource VsInputBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource VsInputBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton"
+                                          Template="{StaticResource ComboBoxToggleButton}"
+                                          Focusable="False"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press"/>
+                            <ContentPresenter x:Name="ContentSite"
+                                              IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              Margin="10,3,23,3"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"/>
+                            <Popup x:Name="Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Slide">
+                                <Grid x:Name="DropDown"
+                                      SnapsToDevicePixels="True"
+                                      MinWidth="{TemplateBinding ActualWidth}"
+                                      MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border x:Name="DropDownBorder"
+                                            Background="{StaticResource VsMenuBackgroundBrush}"
+                                            BorderBrush="{StaticResource VsToolWindowBorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            Margin="0,2,0,0"/>
+                                    <ScrollViewer Margin="4,6" SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="Foreground" Value="{StaticResource VsTextForegroundBrush}"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Padding" Value="8,6"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ComboBoxItem">
+                                    <Border x:Name="Border"
+                                            Background="{TemplateBinding Background}"
+                                            Padding="{TemplateBinding Padding}"
+                                            CornerRadius="2">
+                                        <ContentPresenter/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsHighlighted" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="{StaticResource VsMenuHoverBrush}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="{StaticResource VsSelectedBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Filter CheckBox Style -->
+        <Style x:Key="FilterCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource VsTextForegroundBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,0,14,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Action Button Style with Hover/Press States -->
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.75"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource VsFocusBorderBrush}"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Title Bar Button Style -->
+        <Style x:Key="TitleBarButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="46"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource VsTextSecondaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource VsMenuHoverBrush}"/>
+                                <Setter Property="Foreground" Value="{StaticResource VsTextForegroundBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource VsSelectedBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Close Button Style (Red on hover) -->
+        <Style x:Key="CloseButtonStyle" TargetType="Button" BasedOn="{StaticResource TitleBarButtonStyle}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource VsErrorBrush}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#C42B1C"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <local:MarkdownToFlowDocumentConverter x:Key="MarkdownToFlowDocumentConverter" />
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Custom Title Bar -->
+        <Grid Grid.Row="0" Background="{StaticResource VsToolWindowBrush}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- App Icon and Title -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                <Image Source="Assets/app.ico" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBlock Foreground="{StaticResource VsTextForegroundBrush}" FontSize="12" VerticalAlignment="Center">
+                    <Run Text=".NET Security Advisory Monitor"/>
+                    <Run Text=" "/>
+                    <Run Text="v"/>
+                    <Run Text="{Binding AppVersionDisplay, Mode=OneWay}"/>
+                </TextBlock>
+            </StackPanel>
+
+            <!-- Window Control Buttons -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <Button x:Name="MinimizeButton" 
+                        Style="{StaticResource TitleBarButtonStyle}"
+                        Click="MinimizeButton_Click"
+                        ToolTip="Minimize">
+                    <Path Data="M 0,0 H 10" 
+                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                          StrokeThickness="1"
+                          VerticalAlignment="Center"
+                          HorizontalAlignment="Center"/>
+                </Button>
+
+                <Button x:Name="MaximizeButton" 
+                        Style="{StaticResource TitleBarButtonStyle}"
+                        Click="MaximizeButton_Click"
+                        ToolTip="Maximize">
+                    <Path x:Name="MaximizeIcon"
+                          Data="M 0,0 H 10 V 10 H 0 Z" 
+                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                          StrokeThickness="1"
+                          Fill="Transparent"
+                          VerticalAlignment="Center"
+                          HorizontalAlignment="Center"/>
+                </Button>
+                <Button x:Name="CloseButton" 
+                        Style="{StaticResource CloseButtonStyle}"
+                        Click="CloseButton_Click"
+                        ToolTip="Close">
+                    <Path Data="M 0,0 L 10,10 M 10,0 L 0,10" 
+                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                          StrokeThickness="1"
+                          VerticalAlignment="Center"
+                          HorizontalAlignment="Center"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="1" Margin="20,20,20,10" Orientation="Horizontal">
+            <Image Source="Assets/app.ico" Width="64" Height="64" VerticalAlignment="Center" Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality"/>
+            <StackPanel>
+                <TextBlock Text=".NET Security Advisories"
+                           FontSize="28" FontWeight="SemiBold"
+                           Foreground="{StaticResource VsTextForegroundBrush}"/>
+                <TextBlock Text="Monitor .NET security vulnerabilities in real-time"
+                           FontSize="13"
+                           Foreground="{StaticResource VsTextSecondaryBrush}"
+                           Margin="0,4,0,0"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Stats Bar -->
+        <Border Grid.Row="2" Background="{StaticResource VsToolWindowBrush}"
+                BorderBrush="{StaticResource VsToolWindowBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="4" Padding="16" Margin="20,10,20,10">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <StackPanel Margin="0,0,40,0">
+                    <TextBlock Text="{Binding Advisories.Count}"
+                               HorizontalAlignment="Center"
+                               FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource VsTextForegroundBrush}"/>
+                    <TextBlock Text="Total Advisories"
+                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                               FontSize="12"/>
+                </StackPanel>
+                <StackPanel Margin="0,0,40,0">
+                    <TextBlock Text="{Binding UnacknowledgedCount}"
+                               HorizontalAlignment="Center"
+                               FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource VsInfoBrush}"/>
+                    <TextBlock Text="Unread Advisories"
+                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                               FontSize="12"/>
+                </StackPanel>
+                <StackPanel Margin="0,0,40,0">
+                    <TextBlock Text="{Binding ImpactCount}"
+                               HorizontalAlignment="Center"
+                               FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource VsErrorBrush}"/>
+                    <TextBlock Text="Impact"
+                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                               FontSize="12"/>
+                </StackPanel>
+                <StackPanel Margin="0,0,0,0">
+                    <TextBlock Text="{Binding PotentialImpact}"
+                               HorizontalAlignment="Center"
+                               FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource VsWarningBrush}"/>
+                    <TextBlock Text="Potential Impact"
+                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                               FontSize="12"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Content: Split View -->
+        <Grid Grid.Row="3" Margin="20,10,20,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="400" MinWidth="300"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*" MinWidth="400"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Panel: Filters + Advisory List -->
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Filters Bar -->
+                <Border Grid.Row="0"
+                        Background="{StaticResource VsToolWindowBrush}"
+                        BorderBrush="{StaticResource VsToolWindowBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="12"
+                        Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBox Style="{StaticResource FilterTextBoxStyle}"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="Search CVE, Title, Versions"
+                                 Margin="0,0,0,10"/>
+
+                        <WrapPanel Margin="0,0,0,10">
+                            <CheckBox Style="{StaticResource FilterCheckBoxStyle}"
+                                      Content="Impact"
+                                      IsChecked="{Binding FilterImpactOnly}"/>
+
+                            <CheckBox Style="{StaticResource FilterCheckBoxStyle}"
+                                      Content="Unacknowledged"
+                                      IsChecked="{Binding FilterUnacknowledgedOnly}"/>
+
+                            <CheckBox Style="{StaticResource FilterCheckBoxStyle}"
+                                      Content="New since last run"
+                                      IsChecked="{Binding FilterNewSinceLastRunOnly}"/>
+                        </WrapPanel>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Version" 
+                                           Foreground="{StaticResource VsTextSecondaryBrush}"
+                                           FontSize="11"
+                                           Margin="0,0,0,4"/>
+                                <ComboBox Style="{StaticResource FilterComboBoxStyle}"
+                                          ItemsSource="{Binding VersionFilterOptions}"
+                                          SelectedItem="{Binding SelectedVersionFilter}"
+                                          ToolTip="Filter by version"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Sort by" 
+                                           Foreground="{StaticResource VsTextSecondaryBrush}"
+                                           FontSize="11"
+                                           Margin="0,0,0,4"/>
+                                <ComboBox Style="{StaticResource FilterComboBoxStyle}"
+                                          ItemsSource="{Binding SortModeOptions}"
+                                          SelectedItem="{Binding SortMode}"
+                                          ToolTip="Sort advisories"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Advisory List -->
+                <ListView Grid.Row="1"
+                          ItemsSource="{Binding AdvisoriesView}"
+                          SelectedItem="{Binding SelectedAdvisory, Mode=TwoWay}"
+                          x:Name="AdvisoriesListView"
+                          Background="Transparent"
+                          BorderThickness="0"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          VirtualizingStackPanel.IsVirtualizing="True"
+                          SelectionChanged="AdvisoriesListView_SelectionChanged">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0"/>
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListViewItem">
+                                        <Border x:Name="Bd"
+                                                Background="{StaticResource VsToolWindowBrush}"
+                                                BorderBrush="{StaticResource VsToolWindowBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="4" Margin="0,4" Padding="12">
+                                            <ContentPresenter/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bd" Property="Background"
+                                                        Value="{StaticResource VsMenuHoverBrush}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Bd" Property="Background"
+                                                        Value="{StaticResource VsSelectedBrush}"/>
+                                                <Setter TargetName="Bd" Property="BorderBrush"
+                                                        Value="{StaticResource VsHighlightBrush}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                                <Setter TargetName="Bd" Property="BorderBrush"
+                                                        Value="{StaticResource VsFocusBorderBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Priority Indicator -->
+                                <Border Grid.Column="0"
+                                        MinHeight="5"
+                                        VerticalAlignment="Stretch"
+                                        HorizontalAlignment="Stretch"
+                                        CornerRadius="2"
+                                        Width="4"
+                                        Margin="0"
+                                        Background="{Binding Impact, Converter={StaticResource PriorityToColorConverter}}"/>
+                                <StackPanel Grid.Column="1">
+
+                                    <!-- Action Recommendation Tag -->
+                                    <TextBlock Text="{Binding ActionRecommendationDisplay}"
+                                   Foreground="{Binding ActionRecommendation, Converter={StaticResource ActionRecommendationToBrushConverter}}"
+                                   FontSize="11"
+                                   FontWeight="Bold"
+                                   Margin="10,0,0,4"/>
+
+                                    <!-- CVE ID -->
+                                    <TextBlock Text="{Binding CveDisplay}"
+                                               FontSize="14" FontWeight="SemiBold"
+                                               Foreground="{StaticResource VsTextForegroundBrush}"
+                                               VerticalAlignment="Center"
+                                               Margin="10,0,0,4"/>
+
+                                    <!-- Title (truncated) -->
+                                    <TextBlock Text="{Binding Title}"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxHeight="40"
+                                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                                               FontSize="12"
+                                               Margin="10,0,0,4"/>
+
+                                    <!-- Date -->
+                                    <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:MMM dd, yyyy}'}"
+                                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                                               FontSize="11"
+                                               Margin="10,0,0,4"/>
+                                </StackPanel>
+
+                                <!-- Unread Indicator -->
+                                <Ellipse Grid.Column="2"
+                                         Width="10" Height="10"
+                                         Fill="{StaticResource VsInfoBrush}"
+                                         VerticalAlignment="Center"
+                                         Margin="8,2,0,0"
+                                         Visibility="{Binding IsAcknowledged, Converter={StaticResource InvertedBoolToVisibility}}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+
+            <!-- Splitter -->
+            <GridSplitter Grid.Column="1" Width="1"
+                          Background="{StaticResource VsToolWindowBorderBrush}"
+                          Margin="10,0"/>
+
+            <!-- Right Panel: Detail View -->
+            <Border Grid.Column="2"
+                    Background="{StaticResource VsToolWindowBrush}"
+                    BorderBrush="{StaticResource VsToolWindowBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4" Padding="24"
+                    DataContext="{Binding SelectedAdvisory}">
+                <Grid>
+                    <TextBlock Text="Select an advisory to view details"
+                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                               FontSize="14"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Visibility="{Binding DataContext.HasSelectedAdvisory, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InvertedBoolToVisibility}}"/>
+
+                    <Grid Visibility="{Binding DataContext.HasSelectedAdvisory, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVisibility}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <ScrollViewer Grid.Row="0"
+                                      VerticalScrollBarVisibility="Auto"
+                                      Margin="0,0,0,16">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                    <Border Background="{Binding Impact, Converter={StaticResource PriorityToColorConverter}}"
+                                            CornerRadius="4" Padding="12,6">
+                                        <TextBlock Text="{Binding Impact}"
+                                                   FontSize="11"
+                                                   Foreground="White"/>
+                                    </Border>
+
+                                    <Border Background="{Binding ActionRecommendation, Converter={StaticResource ActionRecommendationToBrushConverter}}"
+                                            CornerRadius="4" Padding="12,6"
+                                            Margin="10,0,0,0">
+                                        <TextBlock Text="{Binding ActionRecommendationDisplay}"
+                                                   FontSize="11"
+                                                   Foreground="White"/>
+                                    </Border>
+
+                                    <TextBlock Text="{Binding CveId}"
+                                               FontSize="20" FontWeight="SemiBold"
+                                               Foreground="{StaticResource VsTextForegroundBrush}"
+                                               VerticalAlignment="Center"
+                                               Margin="16,0,0,0"/>
+                                    <Ellipse Width="10" Height="10"
+                                             Fill="{StaticResource VsInfoBrush}"
+                                             VerticalAlignment="Center"
+                                             Margin="12,0,0,0"
+                                             Visibility="{Binding IsAcknowledged, Converter={StaticResource InvertedBoolToVisibility}}"/>
+                                </StackPanel>
+
+                                <!-- Title -->
+                                <StackPanel Margin="0,0,0,16">
+                                    <TextBlock Text="Title" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                                               Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding Title}" 
+                                               TextWrapping="Wrap"
+                                               FontSize="13"
+                                               Foreground="{StaticResource VsTextForegroundBrush}"/>
+                                </StackPanel>
+
+                                <!-- Issue Number -->
+                                <StackPanel Margin="0,0,0,16">
+                                    <TextBlock Text="Issue Number" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                                               Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding IssueNumber, StringFormat='#{0}'}" 
+                                               FontSize="13"
+                                               Foreground="{StaticResource VsTextForegroundBrush}"/>
+                                </StackPanel>
+
+                                <!-- Published Date -->
+                                <StackPanel Margin="0,0,0,16">
+                                    <TextBlock Text="Published" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                                               Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:MMMM dd, yyyy}'}" 
+                                               FontSize="13"
+                                               Foreground="{StaticResource VsTextForegroundBrush}"/>
+                                </StackPanel>
+
+                                <!-- Affected Versions -->
+                                <StackPanel Margin="0,0,0,16">
+                                    <TextBlock Text="Affected Versions" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                                               Margin="0,0,0,8"/>
+                                    <ItemsControl ItemsSource="{Binding AffectedVersions}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{StaticResource VsMenuBackgroundBrush}"
+                                                        BorderBrush="{StaticResource VsToolWindowBorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="4" Padding="10,6" Margin="0,0,8,8">
+                                                    <TextBlock Text="{Binding}" 
+                                                               FontSize="12"
+                                                               Foreground="{StaticResource VsTextForegroundBrush}"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+
+                                <!-- GitHub Link -->
+                                <StackPanel Margin="0,0,0,16">
+                                    <TextBlock Text="More Information" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                                               Margin="0,0,0,4"/>
+                                    <TextBlock>
+                                        <Hyperlink NavigateUri="{Binding Url}"
+                                                   RequestNavigate="Hyperlink_RequestNavigate"
+                                                   Foreground="{StaticResource VsHighlightBrush}"
+                                                   TextDecorations="{x:Null}">
+                                            <Run Text="{Binding Url, FallbackValue='View on GitHub →', TargetNullValue='View on GitHub →'}"/>
+                                        </Hyperlink>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,4,0,0"
+                                               Visibility="{Binding HasCve, Converter={StaticResource BoolToVisibility}}">
+                                        <Hyperlink NavigateUri="{Binding MsrcUri}"
+                                                   RequestNavigate="Hyperlink_RequestNavigate"
+                                                   Foreground="{StaticResource VsHighlightBrush}"
+                                                   TextDecorations="{x:Null}">
+                                            <Run Text="View on MSRC →"/>
+                                        </Hyperlink>
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <!-- Executive Summary -->
+                                <StackPanel Margin="0,0,0,16">
+                                    <TextBlock Text="Executive Summary" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                                               Margin="0,0,0,4"/>
+                                    <FlowDocumentScrollViewer
+                                        IsToolBarVisible="False"
+                                        VerticalScrollBarVisibility="Hidden"
+                                        Background="Transparent"
+                                        Foreground="{StaticResource VsTextForegroundBrush}"
+                                        FontFamily="Segoe UI"
+                                        FontSize="13"
+                                        Document="{Binding ExecutiveSummary, Converter={StaticResource MarkdownToFlowDocumentConverter}}" />
+                                </StackPanel>
+
+                                <!-- Affected Software -->
+                                <StackPanel Margin="0,0,0,16">
+                                    <TextBlock Text="Affected Software" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                                               Margin="0,0,0,4"/>
+                                    <FlowDocumentScrollViewer
+                                        IsToolBarVisible="False"
+                                        VerticalScrollBarVisibility="Hidden"
+                                        Background="Transparent"
+                                        Foreground="{StaticResource VsTextForegroundBrush}"
+                                        FontFamily="Segoe UI"
+                                        FontSize="13"
+                                        Document="{Binding AffectedSoftware, Converter={StaticResource MarkdownToFlowDocumentConverter}}" />
+                                </StackPanel>
+
+                                <!-- Mitigation Factors -->
+                                <StackPanel Margin="0,0,0,16">
+                                    <TextBlock Text="Mitigation Factors" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                                               Margin="0,0,0,4"/>
+                                    <FlowDocumentScrollViewer
+                                        IsToolBarVisible="False"
+                                        VerticalScrollBarVisibility="Hidden"
+                                        Background="Transparent"
+                                        Foreground="{StaticResource VsTextForegroundBrush}"
+                                        FontFamily="Segoe UI"
+                                        FontSize="13"
+                                        Document="{Binding MitigationFactors, Converter={StaticResource MarkdownToFlowDocumentConverter}}" />
+                                </StackPanel>
+
+                                <!-- Advisory FAQ -->
+                                <StackPanel Margin="0,0,0,16">
+                                    <TextBlock Text="Advisory FAQ" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                                               Margin="0,0,0,4"/>
+
+                                    <FlowDocumentScrollViewer
+                                        IsToolBarVisible="False"
+                                        VerticalScrollBarVisibility="Hidden"
+                                        Background="Transparent"
+                                        Foreground="{StaticResource VsTextForegroundBrush}"
+                                        FontFamily="Segoe UI"
+                                        FontSize="13"
+                                        Document="{Binding AdvisoryFaq, Converter={StaticResource MarkdownToFlowDocumentConverter}}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- Action Buttons (fixed at bottom) -->
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" 
+                                    VerticalAlignment="Bottom">
+                            <Button Content="🔧 Create Remediation Issue"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    Background="{StaticResource VsButtonBrush}"
+                                    Click="CreateIssue_Click"
+                                    Margin="0,0,10,0"/>
+
+                            <Button Content="✓ Mark as Acknowledged"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    Background="{StaticResource VsSuccessBrush}"
+                                    Click="Acknowledge_Click"
+                                    Visibility="{Binding IsAcknowledged, Converter={StaticResource InvertedBoolToVisibility}}"/>
+
+                            <TextBlock Text="✓ Acknowledged" 
+                                       Foreground="{StaticResource VsSuccessBrush}" 
+                                       FontWeight="SemiBold"
+                                       FontSize="13"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,0,0"
+                                       Visibility="{Binding IsAcknowledged, Converter={StaticResource BoolToVisibility}}"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="4" 
+                Background="{StaticResource VsMenuBackgroundBrush}"
+                BorderBrush="{StaticResource VsToolWindowBorderBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="16,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- .NET SDK Version -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="🔧" FontSize="12" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBlock Text="{Binding DotnetVersion}" 
+                               Foreground="{StaticResource VsTextForegroundBrush}"
+                               FontSize="11"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Separator -->
+                <Border Grid.Column="1" 
+                        Width="1" 
+                        Background="{StaticResource VsToolWindowBorderBrush}"
+                        Margin="16,0"/>
+
+                <!-- Installed Runtimes -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Runtimes:" 
+                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                               FontSize="11"
+                               VerticalAlignment="Center"
+                               Margin="0,0,8,0"/>
+                    <TextBlock Text="{Binding DotnetRuntimeInfo}" 
+                               Foreground="{StaticResource VsTextForegroundBrush}"
+                               FontSize="11"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+
+                <!-- Monitored Version Indicator (Dynamic) -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Monitoring:" 
+                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                               FontSize="11"
+                               VerticalAlignment="Center"
+                               Margin="0,0,6,0"/>
+                    <Border Background="{StaticResource VsHighlightBrush}"
+                            CornerRadius="3"
+                            Padding="8,2">
+                        <TextBlock Text="{Binding MonitoredVersionsDisplay}" 
+                                   Foreground="White"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Loading Overlay -->
+        <Grid Grid.Row="1" Grid.RowSpan="4"
+              Background="#CC1E1E1E"
+              Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <!-- Spinner Animation -->
+                <Grid Width="48" Height="48" Margin="0,0,0,16">
+                    <Ellipse Width="48" Height="48"
+                             Stroke="{StaticResource VsToolWindowBorderBrush}"
+                             StrokeThickness="4"/>
+                    <Ellipse x:Name="LoadingSpinner" Width="48" Height="48"
+                             Stroke="{StaticResource VsHighlightBrush}"
+                             StrokeThickness="4"
+                             StrokeDashArray="2,2"
+                             RenderTransformOrigin="0.5,0.5">
+                        <Ellipse.RenderTransform>
+                            <RotateTransform x:Name="SpinnerRotate" Angle="0"/>
+                        </Ellipse.RenderTransform>
+                        <Ellipse.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="SpinnerRotate"
+                                                         Storyboard.TargetProperty="Angle"
+                                                         From="0" To="360"
+                                                         Duration="0:0:1"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Ellipse.Triggers>
+                    </Ellipse>
+                </Grid>
+                <TextBlock Text="{Binding LoadingMessage}"
+                           Foreground="{StaticResource VsTextForegroundBrush}"
+                           FontSize="14"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="Fetching security advisories from GitHub..."
+                           Foreground="{StaticResource VsTextSecondaryBrush}"
+                           FontSize="12"
+                           HorizontalAlignment="Center"
+                           Margin="0,4,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Toast Notification -->
+        <Border Grid.Row="1" 
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="0,10,20,0"
+                Background="{StaticResource VsToolWindowBrush}"
+                BorderBrush="{StaticResource VsHighlightBrush}"
+                BorderThickness="1,1,1,1"
+                CornerRadius="4"
+                Padding="16,12"
+                Visibility="{Binding IsToastVisible, Converter={StaticResource BoolToVisibility}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Icon -->
+                <Border Grid.Column="0" 
+                        Background="{StaticResource VsInfoBrush}"
+                        CornerRadius="12"
+                        Width="24" Height="24"
+                        Margin="0,0,12,0"
+                        VerticalAlignment="Center">
+                    <TextBlock Text="!" 
+                               Foreground="White"
+                               FontWeight="Bold"
+                               FontSize="14"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+                </Border>
+
+                <!-- Message -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding ToastMessage}"
+                               Foreground="{StaticResource VsTextForegroundBrush}"
+                               FontSize="13"
+                               FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding ToastDetails}"
+                               Foreground="{StaticResource VsTextSecondaryBrush}"
+                               FontSize="11"
+                               Margin="0,2,0,0"/>
+                </StackPanel>
+
+                <!-- Close Button -->
+                <Button Grid.Column="2"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        Margin="12,0,0,0"
+                        VerticalAlignment="Top"
+                        Click="ToastClose_Click"
+                        Width="20" Height="20">
+                    <Path Data="M 0,0 L 8,8 M 8,0 L 0,8"
+                          Stroke="{StaticResource VsTextSecondaryBrush}"
+                          StrokeThickness="1.5"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"/>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

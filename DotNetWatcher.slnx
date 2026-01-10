@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="DotNetWatcher/DotNetWatcher.csproj" />
+  <Project Path="Tests/Tests.csproj" Id="bc0219aa-ff32-4ac2-8874-7a92d3d2a014" />
+</Solution>
