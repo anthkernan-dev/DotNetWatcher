@@ -21,7 +21,7 @@ A Windows desktop application that monitors .NET security advisories from the of
 
 ## Screenshots
 
-![DotNetWatcher Main Window]([assets/DotNetWatcher.png](https://github.com/anthkernan-dev/DotNetWatcher/blob/master/DotNetWatcher/Assets/DotNetWatcher.png))
+![DotNetWatcher Main Window](DotNetWatcher/Assets/DotNetWatcher.png)
 
 ## Getting Started
 
