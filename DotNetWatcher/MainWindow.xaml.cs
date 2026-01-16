@@ -697,6 +697,32 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     #region Title Bar Button Handlers
 
+    private void SettingsButton_Click(object sender, RoutedEventArgs e)
+    {
+        var settingsWindow = new SettingsWindow(_configuration)
+        {
+            Owner = this
+        };
+
+        if (settingsWindow.ShowDialog() == true && settingsWindow.SettingsChanged)
+        {
+            // Settings were saved, show message and prompt to restart
+            var result = MessageBox.Show(
+                "Settings have been saved. The application needs to restart to apply the changes.\n\nRestart now?",
+                "Settings Saved",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                // Restart the application
+                System.Diagnostics.Process.Start(
+                    System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName!);
+                Application.Current.Shutdown();
+            }
+        }
+    }
+
     private void MinimizeButton_Click(object sender, RoutedEventArgs e)
     {
         WindowState = WindowState.Minimized;

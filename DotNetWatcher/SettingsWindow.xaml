@@ -1,0 +1,327 @@
+﻿<Window x:Class="DotNetWatcher.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Settings" Height="650" Width="600"
+        Icon="Assets/app.ico"
+        Background="{DynamicResource VsBackgroundBrush}"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        WindowStyle="SingleBorderWindow">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="32"
+                      ResizeBorderThickness="0"
+                      GlassFrameThickness="0"
+                      CornerRadius="0"
+                      UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <!-- Visual Studio Dark Theme Colors -->
+        <SolidColorBrush x:Key="VsBackgroundBrush" Color="#1E1E1E"/>
+        <SolidColorBrush x:Key="VsToolWindowBrush" Color="#252526"/>
+        <SolidColorBrush x:Key="VsToolWindowBorderBrush" Color="#3F3F46"/>
+        <SolidColorBrush x:Key="VsMenuBackgroundBrush" Color="#2D2D30"/>
+        <SolidColorBrush x:Key="VsMenuHoverBrush" Color="#3E3E40"/>
+        <SolidColorBrush x:Key="VsSelectedBrush" Color="#094771"/>
+        <SolidColorBrush x:Key="VsHighlightBrush" Color="#007ACC"/>
+        <SolidColorBrush x:Key="VsTextForegroundBrush" Color="#F1F1F1"/>
+        <SolidColorBrush x:Key="VsTextSecondaryBrush" Color="#9D9D9D"/>
+        <SolidColorBrush x:Key="VsTextDisabledBrush" Color="#656565"/>
+        <SolidColorBrush x:Key="VsInputBackgroundBrush" Color="#3C3C3C"/>
+        <SolidColorBrush x:Key="VsInputBorderBrush" Color="#555555"/>
+        <SolidColorBrush x:Key="VsFocusBorderBrush" Color="#007ACC"/>
+        <SolidColorBrush x:Key="VsButtonBrush" Color="#0E639C"/>
+        <SolidColorBrush x:Key="VsButtonHoverBrush" Color="#1177BB"/>
+        <SolidColorBrush x:Key="VsSuccessBrush" Color="#57A64A"/>
+        <SolidColorBrush x:Key="VsErrorBrush" Color="#F14C4C"/>
+
+        <!-- TextBox Style -->
+        <Style x:Key="SettingsTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Background" Value="{StaticResource VsInputBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource VsTextForegroundBrush}"/>
+            <Setter Property="CaretBrush" Value="{StaticResource VsTextForegroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource VsInputBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Focusable="False"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Hidden"
+                                          VerticalAlignment="Center"
+                                          Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource VsFocusBorderBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource VsHighlightBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- CheckBox Style -->
+        <Style x:Key="SettingsCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource VsTextForegroundBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Button Style -->
+        <Style x:Key="SettingsButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="24,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="MinWidth" Value="100"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.75"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Title Bar Button Style -->
+        <Style x:Key="TitleBarButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="46"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource VsTextSecondaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource VsMenuHoverBrush}"/>
+                                <Setter Property="Foreground" Value="{StaticResource VsTextForegroundBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource VsSelectedBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Close Button Style (Red on hover) -->
+        <Style x:Key="CloseButtonStyle" TargetType="Button" BasedOn="{StaticResource TitleBarButtonStyle}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource VsErrorBrush}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#C42B1C"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Custom Title Bar -->
+        <Grid Grid.Row="0" Background="{StaticResource VsToolWindowBrush}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Title -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                <Image Source="Assets/app.ico" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBlock Text="Settings" Foreground="{StaticResource VsTextForegroundBrush}" FontSize="12" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Close Button -->
+            <Button Grid.Column="2" 
+                    x:Name="CloseButton" 
+                    Style="{StaticResource CloseButtonStyle}"
+                    Click="CloseButton_Click"
+                    ToolTip="Close">
+                <Path Data="M 0,0 L 10,10 M 10,0 L 0,10" 
+                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                      StrokeThickness="1"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Center"/>
+            </Button>
+        </Grid>
+
+        <!-- Settings Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="30,20,30,20">
+            <StackPanel>
+                <!-- Header -->
+                <TextBlock Text="Application Settings"
+                           FontSize="20" FontWeight="SemiBold"
+                           Foreground="{StaticResource VsTextForegroundBrush}"
+                           Margin="0,0,0,10"/>
+                <TextBlock Text="Configure how DotNetWatcher monitors security advisories"
+                           FontSize="12"
+                           Foreground="{StaticResource VsTextSecondaryBrush}"
+                           Margin="0,0,0,30"/>
+
+                <!-- Monitored Versions -->
+                <TextBlock Text="Monitored .NET Versions"
+                           FontSize="13" FontWeight="SemiBold"
+                           Foreground="{StaticResource VsTextForegroundBrush}"
+                           Margin="0,0,0,8"/>
+                <TextBlock Text="Comma-separated list of .NET versions to monitor (e.g., .NET 8.0, .NET 9.0)"
+                           FontSize="11"
+                           Foreground="{StaticResource VsTextSecondaryBrush}"
+                           Margin="0,0,0,6"/>
+                <TextBox x:Name="MonitoredVersionsTextBox"
+                         Style="{StaticResource SettingsTextBoxStyle}"
+                         Margin="0,0,0,20"/>
+
+                <!-- Polling Interval -->
+                <TextBlock Text="Polling Interval (hours)"
+                           FontSize="13" FontWeight="SemiBold"
+                           Foreground="{StaticResource VsTextForegroundBrush}"
+                           Margin="0,0,0,8"/>
+                <TextBlock Text="How often to check for new security advisories"
+                           FontSize="11"
+                           Foreground="{StaticResource VsTextSecondaryBrush}"
+                           Margin="0,0,0,6"/>
+                <TextBox x:Name="PollingIntervalTextBox"
+                         Style="{StaticResource SettingsTextBoxStyle}"
+                         Margin="0,0,0,20"/>
+
+                <!-- Startup Options -->
+                <TextBlock Text="Startup Options"
+                           FontSize="13" FontWeight="SemiBold"
+                           Foreground="{StaticResource VsTextForegroundBrush}"
+                           Margin="0,0,0,8"/>
+                <CheckBox x:Name="StartWithWindowsCheckBox"
+                          Content="Start with Windows"
+                          Style="{StaticResource SettingsCheckBoxStyle}"
+                          Margin="0,0,0,10"/>
+                <CheckBox x:Name="StartMinimizedCheckBox"
+                          Content="Start minimized to system tray"
+                          Style="{StaticResource SettingsCheckBoxStyle}"
+                          Margin="0,0,0,20"/>
+
+                <!-- GitHub Integration -->
+                <TextBlock Text="GitHub Integration"
+                           FontSize="13" FontWeight="SemiBold"
+                           Foreground="{StaticResource VsTextForegroundBrush}"
+                           Margin="0,0,0,8"/>
+                <TextBlock Text="Configure target repository for creating remediation issues"
+                           FontSize="11"
+                           Foreground="{StaticResource VsTextSecondaryBrush}"
+                           Margin="0,0,0,10"/>
+
+                <TextBlock Text="Repository Owner"
+                           FontSize="12"
+                           Foreground="{StaticResource VsTextSecondaryBrush}"
+                           Margin="0,0,0,6"/>
+                <TextBox x:Name="TargetRepoOwnerTextBox"
+                         Style="{StaticResource SettingsTextBoxStyle}"
+                         Margin="0,0,0,12"/>
+
+                <TextBlock Text="Repository Name"
+                           FontSize="12"
+                           Foreground="{StaticResource VsTextSecondaryBrush}"
+                           Margin="0,0,0,6"/>
+                <TextBox x:Name="TargetRepoNameTextBox"
+                         Style="{StaticResource SettingsTextBoxStyle}"
+                         Margin="0,0,0,20"/>
+
+                <!-- Advisory Source -->
+                <TextBlock Text="Advisory Source"
+                           FontSize="13" FontWeight="SemiBold"
+                           Foreground="{StaticResource VsTextForegroundBrush}"
+                           Margin="0,0,0,8"/>
+                <TextBlock Text="GitHub API endpoint for fetching security advisories"
+                           FontSize="11"
+                           Foreground="{StaticResource VsTextSecondaryBrush}"
+                           Margin="0,0,0,6"/>
+                <TextBox x:Name="GitHubAdvisoryUriTextBox"
+                         Style="{StaticResource SettingsTextBoxStyle}"
+                         Margin="0,0,0,10"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Action Buttons -->
+        <Border Grid.Row="2" 
+                Background="{StaticResource VsToolWindowBrush}"
+                BorderBrush="{StaticResource VsToolWindowBorderBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="30,16">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Save"
+                        Style="{StaticResource SettingsButtonStyle}"
+                        Background="{StaticResource VsSuccessBrush}"
+                        Click="SaveButton_Click"
+                        Margin="0,0,10,0"/>
+                <Button Content="Cancel"
+                        Style="{StaticResource SettingsButtonStyle}"
+                        Background="{StaticResource VsInputBorderBrush}"
+                        Click="CancelButton_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
