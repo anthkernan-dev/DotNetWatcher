@@ -55,21 +55,7 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         try
         {
             // Parse monitored versions
-            var versions = MonitoredVersionsTextBox.Text
-                .Split(',')
-                .Select(v => v.Trim())
-                .Where(v => !string.IsNullOrWhiteSpace(v))
-                .ToList();
-
-            if (versions.Count == 0)
-            {
-                MessageBox.Show(
-                    "Please specify at least one .NET version to monitor.",
-                    "Validation Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-                return;
-            }
+            var versions = ParseMonitoredVersions();
 
             // Parse polling interval
             if (!int.TryParse(PollingIntervalTextBox.Text, out int pollingInterval) || pollingInterval < 1)
@@ -110,6 +96,15 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
+    }
+
+    private List<string> ParseMonitoredVersions()
+    {
+        return MonitoredVersionsTextBox.Text
+            .Split(',')
+            .Select(v => v.Trim())
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .ToList();
     }
 
     private bool ValidateSettings()

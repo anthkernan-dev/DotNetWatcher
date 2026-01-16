@@ -8,14 +8,13 @@ namespace DotNetWatcher.Services;
 public static class SettingsService
 {
     private static readonly string SettingsFilePath = Path.Combine(
-        Directory.GetCurrentDirectory(),
+        AppDomain.CurrentDomain.BaseDirectory,
         "appsettings.json");
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
     public static void SaveConfiguration(AppConfiguration configuration)
