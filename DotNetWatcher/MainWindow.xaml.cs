@@ -246,7 +246,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     // Dynamic monitored versions display
     public string MonitoredVersionsDisplay =>
-        string.Join(", ", _configuration.MonitoredVersions ?? [".NET 8.0"]);
+        string.Join(", ", _configuration.MonitoredVersions);
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -787,16 +787,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         // Otherwise hide-to-tray.
         e.Cancel = true;
         Hide();
-
-        if (!_hasShownTrayHint)
-        {
-            _hasShownTrayHint = true;
-            MessageBox.Show(
-                "DotNetWatcher is still running in the system tray.\n\nUse the tray icon to Open, Refresh, or Exit.",
-                "DotNetWatcher",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-        }
     }
 
     internal void ExitApplication()

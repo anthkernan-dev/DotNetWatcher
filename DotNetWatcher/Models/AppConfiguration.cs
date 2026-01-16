@@ -5,7 +5,7 @@ namespace DotNetWatcher.Models;
 
 public record AppConfiguration
 {
-    public List<string> MonitoredVersions { get; init; } = [".NET 8.0"];
+    public List<string> MonitoredVersions { get; init; }
     public int PollingIntervalHours { get; init; } = 1;
     public TimeSpan PollingInterval => TimeSpan.FromHours(PollingIntervalHours);
     public bool StartWithWindows { get; init; }
