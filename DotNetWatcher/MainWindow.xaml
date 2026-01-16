@@ -454,17 +454,12 @@
             <!-- Window Control Buttons -->
             <StackPanel Grid.Column="2" Orientation="Horizontal">
                 <Button x:Name="SettingsButton" 
-                        Style="{StaticResource TitleBarButtonStyle}"
-                        Click="SettingsButton_Click"
-                        ToolTip="Settings">
-                    <Path Data="M 5,2 L 5,0 M 5,10 L 5,8 M 2,5 L 0,5 M 10,5 L 8,5 M 7.5,7.5 L 9,9 M 7.5,2.5 L 9,1 M 2.5,7.5 L 1,9 M 2.5,2.5 L 1,1 M 5,5 m -2,0 a 2,2 0 1,0 4,0 a 2,2 0 1,0 -4,0" 
-                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
-                          StrokeThickness="1"
-                          Fill="Transparent"
-                          VerticalAlignment="Center"
-                          HorizontalAlignment="Center"/>
+        Style="{StaticResource TitleBarButtonStyle}"
+        Click="SettingsButton_Click"
+        ToolTip="Settings">
+                    <Image Source="/settings.png" Width="20" Height="20"/>
                 </Button>
-                
+
                 <Button x:Name="MinimizeButton" 
                         Style="{StaticResource TitleBarButtonStyle}"
                         Click="MinimizeButton_Click"
