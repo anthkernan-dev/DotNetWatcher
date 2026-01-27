@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    
+    <!-- Application Metadata -->
+    <AssemblyName>DotNetWatcher</AssemblyName>
+    <Product>.NET Security Advisory Monitor</Product>
+    <Description>Monitor .NET security advisories from the official dotnet/announcements repository</Description>
+    <Company></Company>
+    <Copyright>Copyright © 2025</Copyright>
+    <Version>1.0.0</Version>
+
+	<!-- DotNetWatcher.csproj -->
+	<Version>1.0.0</Version>
+	<InformationalVersion>1.0.0</InformationalVersion>
+    
+    <!-- Application Icon -->
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="settings.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app.ico" />
+    <Resource Include="settings.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Assets\app.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	  <None Include="appsettings.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+  </ItemGroup>
+
+</Project>
