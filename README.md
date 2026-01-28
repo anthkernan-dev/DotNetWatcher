@@ -149,8 +149,7 @@ DotNetWatcher/
 - [x] Pagination support
 - [x] System tray integration
 - [x] Configurable polling interval with background refresh
-- [ ] Settings UI for version management
-- [ ] Export to CSV/JSON
+- [x] Settings UI for version management
 - [ ] Start with Windows option
 
 ##  Contributing
