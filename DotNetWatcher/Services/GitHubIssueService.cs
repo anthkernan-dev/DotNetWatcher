@@ -10,8 +10,8 @@ namespace DotNetWatcher.Services;
 public class GitHubIssueService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _repoOwner = "anthkernan";
-    private readonly string _repoName = "GitHubAdvisorySample";
+    private readonly string _repoOwner;
+    private readonly string _repoName;
 
     public GitHubIssueService(string gitHubToken, string repoOwner, string repoName)
     {
