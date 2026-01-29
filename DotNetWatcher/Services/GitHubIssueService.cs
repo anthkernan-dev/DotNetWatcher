@@ -26,12 +26,8 @@ public class GitHubIssueService
         client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("DotNetWatcher", "1.0"));
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         client.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
-        
-
-            var token = ""; //Can't create an issue and assign to copilot via the REST endpoint with a fine grained token
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
- 
-        
+       client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", gitHubToken);
+         
         return client;
     }
 

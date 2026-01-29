@@ -18,8 +18,8 @@ namespace DotNetWatcher.Services
             var config = configuration.GetSection("AppConfiguration").Get<AppConfiguration>()
                 ?? new AppConfiguration();
 
-            // Override GitHubToken from environment variable if present
-            var envToken = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+            // GitHub token must be provided via environment variable for security : pwsh $env:DOTNETWATCHER_GITHUB_TOKEN = "your-token-here"
+            var envToken = Environment.GetEnvironmentVariable("DOTNETWATCHER_GITHUB_TOKEN");
             if (!string.IsNullOrWhiteSpace(envToken))
             {
                 config = config with { GitHubToken = envToken };

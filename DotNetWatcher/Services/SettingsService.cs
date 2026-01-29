@@ -45,17 +45,6 @@ public static class SettingsService
                 }
             };
 
-            // Preserve GitHubToken if it exists in the file (don't overwrite from environment variable)
-            if (root.TryGetProperty("AppConfiguration", out var appConfig) &&
-                appConfig.TryGetProperty("GitHubToken", out var token))
-            {
-                var tokenValue = token.GetString();
-                if (!string.IsNullOrWhiteSpace(tokenValue))
-                {
-                    ((Dictionary<string, object>)configObject["AppConfiguration"])["GitHubToken"] = tokenValue;
-                }
-            }
-
             // Serialize and write to file
             var jsonString = JsonSerializer.Serialize(configObject, JsonOptions);
             File.WriteAllText(SettingsFilePath, jsonString);
